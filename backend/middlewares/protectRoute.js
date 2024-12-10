@@ -1,0 +1,25 @@
+const User = require("../models/User");
+const jwt = require ("jsonwebtoken");
+
+const protectRoute = async (req, res, next) => {
+	try {
+		console.log("token is ",req.cookies);
+		
+		const token = req.cookies.jwt;
+		if (!token) return res.status(401).json({ message: "Unauthorized" });
+
+		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+		console.log("dec",decoded);
+		
+		const user = await User.findById(decoded.userId).select("-password");
+
+		req.user = user;
+
+		next();
+	} catch (err) {
+		res.status(500).json({ message: err.message });
+		console.log("Error in signupUser: ", err.message);
+	}
+};
+
+module.exports =  protectRoute;
